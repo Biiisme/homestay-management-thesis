@@ -7,11 +7,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.DateTimeException;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "rooms")
+@Table(name = "room_pricing")
 @Getter
 @Setter
 @NoArgsConstructor

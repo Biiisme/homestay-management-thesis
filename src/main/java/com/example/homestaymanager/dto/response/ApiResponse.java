@@ -1,4 +1,4 @@
-package com.example.homestaymanager.dto;
+package com.example.homestaymanager.dto.response;
 
 import lombok.*;
 
