@@ -1,7 +1,7 @@
 package com.example.homestaymanager.exception;
 import com.example.homestaymanager.constant.ApiMessage;
 import com.example.homestaymanager.constant.ApiStatus;
-import com.example.homestaymanager.dto.ApiResponse;
+import com.example.homestaymanager.dto.response.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice

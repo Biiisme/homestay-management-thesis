@@ -2,7 +2,7 @@ package com.example.homestaymanager.controller;
 
 import com.example.homestaymanager.constant.ApiMessage;
 import com.example.homestaymanager.constant.ApiStatus;
-import com.example.homestaymanager.dto.ApiResponse;
+import com.example.homestaymanager.dto.response.ApiResponse;
 import com.example.homestaymanager.model.Employee;
 import com.example.homestaymanager.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
