@@ -1,5 +1,8 @@
 package com.example.homestaymanager.controller;
 
+import com.example.homestaymanager.constant.ApiMessage;
+import com.example.homestaymanager.constant.ApiStatus;
+import com.example.homestaymanager.dto.response.ApiResponse;
 import com.example.homestaymanager.model.Category;
 import com.example.homestaymanager.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -12,17 +15,20 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping("/categories")
-    public Integer createCategory(@RequestBody Category category) {
-        return categoryService.createCategory(category);
+    public ApiResponse<Integer> createCategory(@RequestBody Category category) {
+        int i= categoryService.createCategory(category);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.CREATED, category.getId());
     }
 
     @GetMapping("/categories/{categoryId}")
-    public Category getCategoryById(@PathVariable int categoryId) {
-        return categoryService.getCategoryByID(categoryId);
+    public ApiResponse<Category> getCategoryById(@PathVariable int categoryId) {
+        Category category= categoryService.getCategoryByID(categoryId);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS,category);
     }
 
     @DeleteMapping("/categories/{categoryId}")
-    public void deleteCategoryById(@PathVariable int categoryId) {
+    public ApiResponse<?> deleteCategoryById(@PathVariable int categoryId) {
         categoryService.deleteCategoryById(categoryId);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.DELETED,null);
     }
 }

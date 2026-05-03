@@ -19,7 +19,9 @@ public class Employee {
     @Column(nullable = false)
     private String name;
     private BigDecimal salary;
+    @Column(nullable = false,unique = true)
     private String email;
+    @Column(nullable = false)
     private  String password;
 
     @Column(nullable = false)

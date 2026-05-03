@@ -19,7 +19,7 @@ public class Room {
     private Branch branch;
     @ManyToOne @JoinColumn(name = "roomType_id")
     private RoomType roomType;
-    private int Number;
+    private int number;
     private float area;
     private String thumbnail;
 }
