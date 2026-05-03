@@ -1,5 +1,8 @@
 package com.example.homestaymanager.controller;
 
+import com.example.homestaymanager.constant.ApiMessage;
+import com.example.homestaymanager.constant.ApiStatus;
+import com.example.homestaymanager.dto.response.ApiResponse;
 import com.example.homestaymanager.model.RoomPhoto;
 import com.example.homestaymanager.service.RoomPhotoService;
 import lombok.RequiredArgsConstructor;
@@ -12,17 +15,20 @@ public class RoomPhotoController {
     private final RoomPhotoService roomPhotoService;
 
     @PostMapping("/roomPhotos")
-    public Integer createRoomPhoto(@RequestBody RoomPhoto roomPhoto) {
-        return roomPhotoService.createRoomPhoto(roomPhoto);
+    public ApiResponse<Integer> createRoomPhoto(@RequestBody RoomPhoto roomPhoto) {
+        int i= roomPhotoService.createRoomPhoto(roomPhoto);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.CREATED,roomPhoto.getId());
     }
 
     @GetMapping("/roomPhotos/{roomPhotoId}")
-    public RoomPhoto getRoomPhotoById(@PathVariable int roomPhotoId) {
-        return roomPhotoService.getRoomPhotoByID(roomPhotoId);
+    public ApiResponse<RoomPhoto> getRoomPhotoById(@PathVariable int roomPhotoId) {
+        RoomPhoto roomPhoto = roomPhotoService.getRoomPhotoByID(roomPhotoId);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS,roomPhoto);
     }
 
     @DeleteMapping("/roomPhotos/{roomPhotoId}")
-    public void deleteRoomPhotoById(@PathVariable int roomPhotoId) {
+    public ApiResponse<?> deleteRoomPhotoById(@PathVariable int roomPhotoId) {
         roomPhotoService.deleteRoomPhotoById(roomPhotoId);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.DELETED,null);
     }
 }

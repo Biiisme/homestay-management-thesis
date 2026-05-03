@@ -1,5 +1,6 @@
 package com.example.homestaymanager.service.impl;
 
+import com.example.homestaymanager.dto.response.CustomerResponse;
 import com.example.homestaymanager.model.Customer;
 
 import com.example.homestaymanager.repository.CustomerRepository;
@@ -21,9 +22,18 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Customer getCustomerByID(int id){
-        return customerRepository.findById(id)
+    public CustomerResponse getCustomerByID(int id){
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+        CustomerResponse res = new CustomerResponse();
+        res.setId(customer.getId());
+        res.setEmail(customer.getEmail());
+        res.setName(customer.getName());
+        res.setPhone(customer.getPhone());
+        res.setAddress(customer.getAddress());
+        res.setImage(customer.getImage());
+
+        return res;
     }
 
     @Override
