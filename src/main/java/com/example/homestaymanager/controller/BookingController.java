@@ -2,15 +2,14 @@ package com.example.homestaymanager.controller;
 
 import com.example.homestaymanager.constant.ApiMessage;
 import com.example.homestaymanager.constant.ApiStatus;
-
-
 import com.example.homestaymanager.dto.request.CreateBookingRequest;
+import com.example.homestaymanager.dto.request.UpdateBookingStatusRequest;
 import com.example.homestaymanager.dto.response.ApiResponse;
 import com.example.homestaymanager.dto.response.BookingResponse;
-
-import com.example.homestaymanager.dto.request.UpdateBookingStatusRequest;
+import com.example.homestaymanager.enums.BookingStatus;
 import com.example.homestaymanager.service.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,6 +17,18 @@ import org.springframework.web.bind.annotation.*;
 public class BookingController {
 
     private final BookingService bookingService;
+
+    @GetMapping("/bookings")
+    public ApiResponse<Page<BookingResponse>> getBookings(
+            @RequestParam(required = false) Integer customerId,
+            @RequestParam(required = false) Integer roomId,
+            @RequestParam(required = false) Integer branchId,
+            @RequestParam(required = false) BookingStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<BookingResponse> data = bookingService.getBookings(customerId, roomId, branchId, status, page, size);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS, data);
+    }
 
     @PostMapping("/bookings")
     public ApiResponse<BookingResponse> createBooking(@RequestBody CreateBookingRequest request) {
