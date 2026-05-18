@@ -1,17 +1,18 @@
 package com.example.homestaymanager.service;
 
+import com.example.homestaymanager.dto.request.CreateRoomRequest;
 import com.example.homestaymanager.dto.request.UpdateRoomRequest;
-import com.example.homestaymanager.model.Room;
+import com.example.homestaymanager.dto.response.RoomResponse;
 import java.util.List;
 
 public interface RoomService {
-    Integer createRoom(Room room);
+    Integer createRoom(CreateRoomRequest request);
 
-    Room getRoomByID(int id);
+    RoomResponse getRoomByID(int id);
 
     void deleteRoomById(int id);
 
-    List<Room> getListRoom();
+    List<RoomResponse> getListRoom();
 
-    Room updateRoomById(int id, UpdateRoomRequest request);
+    RoomResponse updateRoomById(int id, UpdateRoomRequest request);
 }

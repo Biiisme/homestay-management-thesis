@@ -1,12 +1,24 @@
 package com.example.homestaymanager.service.impl;
+
+import com.example.homestaymanager.dto.request.CreateRoomAmenityRequest;
+import com.example.homestaymanager.dto.request.CreateRoomRequest;
 import com.example.homestaymanager.dto.request.UpdateRoomRequest;
+import com.example.homestaymanager.dto.response.RoomAmenityResponse;
+import com.example.homestaymanager.dto.response.RoomResponse;
+import com.example.homestaymanager.enums.RoomStatus;
+import com.example.homestaymanager.model.Amenity;
 import com.example.homestaymanager.model.Room;
+import com.example.homestaymanager.model.RoomAmenity;
+import com.example.homestaymanager.repository.AmenityRepository;
 import com.example.homestaymanager.repository.BranchRepository;
+import com.example.homestaymanager.repository.RoomAmenityRepository;
 import com.example.homestaymanager.repository.RoomRepository;
 import com.example.homestaymanager.repository.RoomTypeRepository;
 import com.example.homestaymanager.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -16,42 +28,63 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepository roomRepository;
     private final BranchRepository branchRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final AmenityRepository amenityRepository;
+    private final RoomAmenityRepository roomAmenityRepository;
 
     @Override
-    public Integer createRoom(Room room) {
-        if (room.getNumber() <= 0) {
-            throw new RuntimeException("Room number phải > 0");
+    @Transactional
+    public Integer createRoom(CreateRoomRequest request) {
+        if (request == null) {
+            throw new RuntimeException("Room request is required");
+        }
+        if (request.getNumber() <= 0) {
+            throw new RuntimeException("Room number phai > 0");
+        }
+        if (request.getArea() <= 0) {
+            throw new RuntimeException("Area phai > 0");
         }
 
-        if (room.getArea() <= 0) {
-            throw new RuntimeException("Area phải > 0");
-        }
+        Room room = new Room();
+        room.setBranch(branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new RuntimeException("Branch not found")));
+        room.setRoomType(roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new RuntimeException("RoomType not found")));
+        room.setNumber(request.getNumber());
+        room.setArea(request.getArea());
+        room.setThumbnail(request.getThumbnail());
+        room.setStatus(request.getStatus() != null ? request.getStatus() : RoomStatus.AVAILABLE);
 
         roomRepository.save(room);
+        replaceAmenities(room, request.getAmenities());
         return room.getId();
     }
 
     @Override
-    public Room getRoomByID(int id) {
-        return roomRepository.findById(id)
+    @Transactional(readOnly = true)
+    public RoomResponse getRoomByID(int id) {
+        Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
+        return toResponse(room);
     }
 
     @Override
+    @Transactional
     public void deleteRoomById(int id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
-
+        roomAmenityRepository.deleteByRoomId(room.getId());
         roomRepository.delete(room);
     }
 
     @Override
-    public List<Room> getListRoom() {
-        return roomRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<RoomResponse> getListRoom() {
+        return roomRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
-    public Room updateRoomById(int id, UpdateRoomRequest request) {
+    @Transactional
+    public RoomResponse updateRoomById(int id, UpdateRoomRequest request) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
@@ -73,10 +106,61 @@ public class RoomServiceImpl implements RoomService {
             room.setArea(request.getArea());
         }
 
-        if (request.getThumbnail() != null && !request.getThumbnail().isBlank()) {
+        if (request.getThumbnail() != null) {
             room.setThumbnail(request.getThumbnail());
         }
 
-        return roomRepository.save(room);
+        if (request.getStatus() != null) {
+            room.setStatus(request.getStatus());
+        }
+
+        Room saved = roomRepository.save(room);
+        if (request.getAmenities() != null) {
+            replaceAmenities(saved, request.getAmenities());
+        }
+        return toResponse(saved);
+    }
+
+    private void replaceAmenities(Room room, List<CreateRoomAmenityRequest> amenities) {
+        if (amenities == null) {
+            return;
+        }
+        roomAmenityRepository.deleteByRoomId(room.getId());
+        for (CreateRoomAmenityRequest item : amenities) {
+            if (item.getAmenityId() == null) {
+                continue;
+            }
+            Amenity amenity = amenityRepository.findById(item.getAmenityId())
+                    .orElseThrow(() -> new RuntimeException("Amenity not found"));
+            RoomAmenity roomAmenity = new RoomAmenity();
+            roomAmenity.setRoom(room);
+            roomAmenity.setAmenity(amenity);
+            roomAmenity.setQuantity(item.getQuantity() > 0 ? item.getQuantity() : 1);
+            roomAmenityRepository.save(roomAmenity);
+        }
+    }
+
+    private RoomResponse toResponse(Room room) {
+        List<RoomAmenityResponse> amenities = roomAmenityRepository.findByRoomId(room.getId())
+                .stream()
+                .map(item -> RoomAmenityResponse.builder()
+                        .id(item.getId())
+                        .amenityId(item.getAmenity().getId())
+                        .amenityName(item.getAmenity().getName())
+                        .amenityDescription(null)
+                        .quantity(item.getQuantity())
+                        .build())
+                .toList();
+
+        return RoomResponse.builder()
+                .id(room.getId())
+                .branch(room.getBranch())
+                .roomType(room.getRoomType())
+                .number(room.getNumber())
+                .area(room.getArea())
+                .thumbnail(room.getThumbnail())
+                .status(room.getStatus() != null ? room.getStatus() : RoomStatus.AVAILABLE)
+                .amenities(amenities)
+                .build();
     }
 }
