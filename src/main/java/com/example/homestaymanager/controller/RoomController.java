@@ -1,9 +1,11 @@
 package com.example.homestaymanager.controller;
+
 import com.example.homestaymanager.constant.ApiMessage;
 import com.example.homestaymanager.constant.ApiStatus;
+import com.example.homestaymanager.dto.request.CreateRoomRequest;
 import com.example.homestaymanager.dto.request.UpdateRoomRequest;
 import com.example.homestaymanager.dto.response.ApiResponse;
-import com.example.homestaymanager.model.Room;
+import com.example.homestaymanager.dto.response.RoomResponse;
 import com.example.homestaymanager.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,27 +19,24 @@ public class RoomController {
     private final RoomService roomService;
 
     @GetMapping("/rooms")
-    public ApiResponse<List<Room>> getListRoom() {
-        List<Room> rooms = roomService.getListRoom();
-        return ApiResponse.of(ApiStatus.OK, "Lấy ra danh sách phòng thành công", rooms);
+    public ApiResponse<List<RoomResponse>> getListRoom() {
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS, roomService.getListRoom());
     }
 
     @PostMapping("/rooms")
-    public ApiResponse<Integer> createRoom(@RequestBody Room room) {
-        int i = roomService.createRoom(room);
-        return ApiResponse.of(ApiStatus.OK, ApiMessage.CREATED, room.getId());
+    public ApiResponse<Integer> createRoom(@RequestBody CreateRoomRequest request) {
+        int id = roomService.createRoom(request);
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.CREATED, id);
     }
 
     @GetMapping("/rooms/{roomId}")
-    public ApiResponse<Room> getRoomById(@PathVariable int roomId) {
-        Room room = roomService.getRoomByID(roomId);
-        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS, room);
+    public ApiResponse<RoomResponse> getRoomById(@PathVariable int roomId) {
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.SUCCESS, roomService.getRoomByID(roomId));
     }
 
     @PatchMapping("/rooms/{roomId}")
-    public ApiResponse<Room> updateRoomById(@PathVariable int roomId, @RequestBody UpdateRoomRequest request) {
-        Room room = roomService.updateRoomById(roomId, request);
-        return ApiResponse.of(ApiStatus.OK, ApiMessage.UPDATED, room);
+    public ApiResponse<RoomResponse> updateRoomById(@PathVariable int roomId, @RequestBody UpdateRoomRequest request) {
+        return ApiResponse.of(ApiStatus.OK, ApiMessage.UPDATED, roomService.updateRoomById(roomId, request));
     }
 
     @DeleteMapping("/rooms/{roomId}")

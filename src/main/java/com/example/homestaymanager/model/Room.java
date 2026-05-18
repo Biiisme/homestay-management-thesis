@@ -1,5 +1,6 @@
 package com.example.homestaymanager.model;
 
+import com.example.homestaymanager.enums.RoomStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,4 +23,6 @@ public class Room {
     private int number;
     private float area;
     private String thumbnail;
+    @Enumerated(EnumType.STRING)
+    private RoomStatus status = RoomStatus.AVAILABLE;
 }

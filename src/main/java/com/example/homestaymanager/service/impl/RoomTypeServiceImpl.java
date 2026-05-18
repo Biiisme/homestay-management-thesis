@@ -1,29 +1,37 @@
 package com.example.homestaymanager.service.impl;
 
 import com.example.homestaymanager.dto.request.UpdateRoomTypeRequest;
-import com.example.homestaymanager.model.Role;
 import com.example.homestaymanager.model.RoomType;
-import com.example.homestaymanager.repository.RoleRepository;
+import com.example.homestaymanager.repository.RoomRepository;
 import com.example.homestaymanager.repository.RoomTypeRepository;
-import com.example.homestaymanager.service.RoleService;
 import com.example.homestaymanager.service.RoomTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class RoomTypeServiceImpl implements RoomTypeService {
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
+
     @Override
     public Integer createRoomType(RoomType roomType) {
-        if(roomType.getMaxGuest()<1){
-            throw new RuntimeException("maxGuest phải >= 1");
+        if (roomType.getName() == null || roomType.getName().isBlank()) {
+            throw new RuntimeException("RoomType name is required");
+        }
+        if (roomTypeRepository.existsByNameIgnoreCase(roomType.getName())) {
+            throw new RuntimeException("Ten loai phong da ton tai");
+        }
+        if (roomType.getMaxGuest() < 1) {
+            throw new RuntimeException("maxGuest phai >= 1");
         }
 
         roomTypeRepository.save(roomType);
         return roomType.getId();
     }
+
     @Override
     public RoomType getRoomTypeByID(int id) {
         return roomTypeRepository.findById(id)
@@ -34,6 +42,9 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     public void deleteRoomTypeById(int id) {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RoomType not found"));
+        if (roomRepository.countByRoomTypeId(id) > 0) {
+            throw new RuntimeException("Khong the xoa loai phong dang co phong su dung");
+        }
 
         roomTypeRepository.delete(roomType);
     }
@@ -49,6 +60,9 @@ public class RoomTypeServiceImpl implements RoomTypeService {
                 .orElseThrow(() -> new RuntimeException("RoomType not found"));
 
         if (request.getName() != null && !request.getName().isBlank()) {
+            if (roomTypeRepository.existsByNameIgnoreCaseAndIdNot(request.getName(), id)) {
+                throw new RuntimeException("Ten loai phong da ton tai");
+            }
             roomType.setName(request.getName());
         }
 

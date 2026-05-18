@@ -1,5 +1,6 @@
 package com.example.homestaymanager.dto.response;
 
+import com.example.homestaymanager.enums.CustomerStatus;
 import lombok.Data;
 
 @Data
@@ -11,4 +12,5 @@ public class CustomerResponse {
     private String phone;
     private String address;
     private String image;
+    private CustomerStatus status;
 }

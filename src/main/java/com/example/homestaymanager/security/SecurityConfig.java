@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 "/categories/**",
                                 "/roomTypes/**",
                                 "/roomPricings/**",
-                                "/roomPhotos/**"
+                                "/roomPhotos/**",
+                                "/uploads/**"
                         ).hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,
                                 "/roles/**",
@@ -59,7 +60,8 @@ public class SecurityConfig {
                                 "/categories/**",
                                 "/roomTypes/**",
                                 "/roomPricings/**",
-                                "/roomPhotos/**"
+                                "/roomPhotos/**",
+                                "/uploads/**"
                         ).hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,
                                 "/roles/**",
@@ -69,7 +71,8 @@ public class SecurityConfig {
                                 "/categories/**",
                                 "/roomTypes/**",
                                 "/roomPricings/**",
-                                "/roomPhotos/**"
+                                "/roomPhotos/**",
+                                "/uploads/**"
                         ).hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )

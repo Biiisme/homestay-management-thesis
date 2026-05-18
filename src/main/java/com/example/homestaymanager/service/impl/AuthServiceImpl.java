@@ -4,6 +4,7 @@ import com.example.homestaymanager.dto.request.LoginRequest;
 import com.example.homestaymanager.dto.request.RegisterRequest;
 import com.example.homestaymanager.dto.response.AuthUserResponse;
 import com.example.homestaymanager.dto.response.LoginResponse;
+import com.example.homestaymanager.enums.CustomerStatus;
 import com.example.homestaymanager.exception.UnauthorizedException;
 import com.example.homestaymanager.model.Customer;
 import com.example.homestaymanager.model.Employee;
@@ -37,6 +38,9 @@ public class AuthServiceImpl implements AuthService {
 
         Customer customer = customerRepository.findByEmail(request.getEmail()).orElse(null);
         if (customer != null && passwordMatches(request.getPassword(), customer.getPassword())) {
+            if (customer.getStatus() == CustomerStatus.LOCKED) {
+                throw new UnauthorizedException("Tai khoan khach hang dang bi khoa");
+            }
             return customerLoginResponse(customer);
         }
 
@@ -61,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
         customer.setEmail(request.getEmail());
         customer.setPassword(request.getPassword());
         customer.setPhone(request.getPhone());
+        customer.setStatus(CustomerStatus.ACTIVE);
         customerRepository.save(customer);
 
         return customerLoginResponse(customer);

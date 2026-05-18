@@ -1,22 +1,26 @@
 package com.example.homestaymanager.service.impl;
 
 import com.example.homestaymanager.dto.request.UpdateCustomerRequest;
+import com.example.homestaymanager.dto.response.BookingResponse;
 import com.example.homestaymanager.dto.response.CustomerResponse;
+import com.example.homestaymanager.enums.CustomerStatus;
 import com.example.homestaymanager.model.Customer;
 
+import com.example.homestaymanager.repository.BookingRepository;
 import com.example.homestaymanager.repository.CustomerRepository;
 
 import com.example.homestaymanager.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public Integer createCustomer(Customer customer){
@@ -28,15 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerResponse getCustomerByID(int id){
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-        CustomerResponse res = new CustomerResponse();
-        res.setId(customer.getId());
-        res.setEmail(customer.getEmail());
-        res.setName(customer.getName());
-        res.setPhone(customer.getPhone());
-        res.setAddress(customer.getAddress());
-        res.setImage(customer.getImage());
-
-        return res;
+        return toResponse(customer);
     }
 
     @Override
@@ -47,8 +43,18 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<Customer> getListCustomer() {
-        return customerRepository.findAll();
+    public List<CustomerResponse> getListCustomer(String keyword) {
+        List<Customer> customers;
+        if (keyword == null || keyword.isBlank()) {
+            customers = customerRepository.findAll();
+        } else {
+            String normalized = keyword.trim();
+            customers = customerRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+                    normalized,
+                    normalized,
+                    normalized);
+        }
+        return customers.stream().map(CustomerServiceImpl::toResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -80,8 +86,40 @@ public class CustomerServiceImpl implements CustomerService {
             customer.setImage(request.getImage());
         }
 
+        if (request.getStatus() != null) {
+            customer.setStatus(request.getStatus());
+        }
+
         customerRepository.save(customer);
 
+        return toResponse(customer);
+    }
+
+    @Override
+    public CustomerResponse updateCustomerStatus(int id, CustomerStatus status) {
+        if (status == null) {
+            throw new RuntimeException("Status is required");
+        }
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        customer.setStatus(status);
+        customerRepository.save(customer);
+        return toResponse(customer);
+    }
+
+    @Override
+    public List<BookingResponse> getCustomerBookings(int id) {
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Customer not found");
+        }
+        return bookingRepository.findByFilters(id, null, null, null, org.springframework.data.domain.Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(BookingServiceImpl::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    private static CustomerResponse toResponse(Customer customer) {
         CustomerResponse res = new CustomerResponse();
         res.setId(customer.getId());
         res.setEmail(customer.getEmail());
@@ -89,7 +127,7 @@ public class CustomerServiceImpl implements CustomerService {
         res.setPhone(customer.getPhone());
         res.setAddress(customer.getAddress());
         res.setImage(customer.getImage());
-
+        res.setStatus(customer.getStatus() != null ? customer.getStatus() : CustomerStatus.ACTIVE);
         return res;
     }
 }

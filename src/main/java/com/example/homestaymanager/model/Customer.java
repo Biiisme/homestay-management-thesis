@@ -1,5 +1,6 @@
 package com.example.homestaymanager.model;
 
+import com.example.homestaymanager.enums.CustomerStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,6 +24,8 @@ public class Customer {
     private  String phone;
     private  String address;
     private  String image;
+    @Enumerated(EnumType.STRING)
+    private CustomerStatus status = CustomerStatus.ACTIVE;
 }
 
 

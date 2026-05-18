@@ -250,7 +250,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private static BookingResponse toResponse(Booking b) {
+    public static BookingResponse toResponse(Booking b) {
         Integer employeeId = b.getEmployee() != null ? b.getEmployee().getId() : null;
         Integer branchId = b.getRoom().getBranch() != null ? b.getRoom().getBranch().getId() : null;
         Integer refundPercentage = null;
