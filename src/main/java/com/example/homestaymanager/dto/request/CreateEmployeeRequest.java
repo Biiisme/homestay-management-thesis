@@ -7,6 +7,7 @@ public class CreateEmployeeRequest {
     private String name;
     private BigDecimal salary;
     private String email;
+    private String username;
     private String password;
     private String phone;
     private String address;

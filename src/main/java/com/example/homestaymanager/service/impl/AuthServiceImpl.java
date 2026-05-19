@@ -33,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
 
         Employee employee = employeeRepository.findByEmail(request.getEmail()).orElse(null);
         if (employee != null && passwordMatches(request.getPassword(), employee.getPassword())) {
+            if (Boolean.FALSE.equals(employee.getActive())) {
+                throw new UnauthorizedException("Tai khoan nhan vien dang bi vo hieu hoa");
+            }
             return employeeLoginResponse(employee);
         }
 

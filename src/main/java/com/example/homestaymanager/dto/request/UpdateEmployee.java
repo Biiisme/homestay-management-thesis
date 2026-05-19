@@ -13,8 +13,10 @@ public class UpdateEmployee {
     private String name;
     private BigDecimal salary;
     private String email;
+    private String username;
     private  String phone;
     private  String address;
     private  String image;
+    private Boolean active;
     private Integer roleId;
 }
