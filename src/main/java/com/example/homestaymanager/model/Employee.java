@@ -21,6 +21,8 @@ public class Employee {
     private BigDecimal salary;
     @Column(nullable = false,unique = true)
     private String email;
+    @Column(unique = true)
+    private String username;
     @Column(nullable = false)
     private  String password;
 
@@ -28,6 +30,8 @@ public class Employee {
     private  String phone;
     private  String address;
     private  String image;
+    @Column(nullable = false)
+    private Boolean active = true;
     @ManyToOne @JoinColumn(name = "role_id")
     private Role role;
 
