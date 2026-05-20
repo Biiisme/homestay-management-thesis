@@ -22,10 +22,10 @@ public class RoomTypeServiceImpl implements RoomTypeService {
             throw new RuntimeException("RoomType name is required");
         }
         if (roomTypeRepository.existsByNameIgnoreCase(roomType.getName())) {
-            throw new RuntimeException("Ten loai phong da ton tai");
+            throw new RuntimeException("Tên loại phòng đã tồn tại");
         }
         if (roomType.getMaxGuest() < 1) {
-            throw new RuntimeException("maxGuest phai >= 1");
+            throw new RuntimeException("maxGuest phải >= 1");
         }
 
         roomTypeRepository.save(roomType);
@@ -43,7 +43,7 @@ public class RoomTypeServiceImpl implements RoomTypeService {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RoomType not found"));
         if (roomRepository.countByRoomTypeId(id) > 0) {
-            throw new RuntimeException("Khong the xoa loai phong dang co phong su dung");
+            throw new RuntimeException("Không thể xóa loại phòng đang có phòng sử dụng");
         }
 
         roomTypeRepository.delete(roomType);
@@ -61,7 +61,7 @@ public class RoomTypeServiceImpl implements RoomTypeService {
 
         if (request.getName() != null && !request.getName().isBlank()) {
             if (roomTypeRepository.existsByNameIgnoreCaseAndIdNot(request.getName(), id)) {
-                throw new RuntimeException("Ten loai phong da ton tai");
+                throw new RuntimeException("Tên loại phòng đã tồn tại");
             }
             roomType.setName(request.getName());
         }

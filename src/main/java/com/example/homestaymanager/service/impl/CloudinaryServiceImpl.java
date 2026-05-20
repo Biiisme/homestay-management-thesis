@@ -34,12 +34,12 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         validateCloudinaryConfig();
 
         if (file == null || file.isEmpty()) {
-            throw new RuntimeException("File anh khong duoc de trong");
+            throw new RuntimeException("File ảnh không được để trống");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new RuntimeException("Chi cho phep upload file anh");
+            throw new RuntimeException("Chỉ cho phép upload file ảnh");
         }
 
         String safeFolder = normalizeFolder(folder);
@@ -59,7 +59,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
                     .folder(safeFolder)
                     .build();
         } catch (IOException exception) {
-            throw new RuntimeException("Khong the doc file anh", exception);
+            throw new RuntimeException("Không thể đọc file ảnh", exception);
         }
     }
 
@@ -68,13 +68,13 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         validateCloudinaryConfig();
 
         if (publicId == null || publicId.isBlank()) {
-            throw new RuntimeException("publicId khong duoc de trong");
+            throw new RuntimeException("publicId không được để trống");
         }
 
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
         } catch (IOException exception) {
-            throw new RuntimeException("Khong the xoa anh tren Cloudinary", exception);
+            throw new RuntimeException("Không thể xóa ảnh trên Cloudinary", exception);
         }
     }
 
@@ -82,7 +82,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         String normalized = folder == null || folder.isBlank() ? "misc" : folder.trim();
 
         if (!ALLOWED_FOLDERS.contains(normalized)) {
-            throw new RuntimeException("Folder upload khong hop le");
+            throw new RuntimeException("Folder upload không hợp lệ");
         }
 
         return normalized;
@@ -92,7 +92,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         if (cloudinary.config.cloudName == null || cloudinary.config.cloudName.isBlank()
                 || cloudinary.config.apiKey == null || cloudinary.config.apiKey.isBlank()
                 || cloudinary.config.apiSecret == null || cloudinary.config.apiSecret.isBlank()) {
-            throw new RuntimeException("Thieu cau hinh Cloudinary");
+            throw new RuntimeException("Thiếu cấu hình Cloudinary");
         }
     }
 }

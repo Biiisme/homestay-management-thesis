@@ -38,10 +38,10 @@ public class RoomServiceImpl implements RoomService {
             throw new RuntimeException("Room request is required");
         }
         if (request.getNumber() <= 0) {
-            throw new RuntimeException("Room number phai > 0");
+            throw new RuntimeException("Room number phải > 0");
         }
         if (request.getArea() <= 0) {
-            throw new RuntimeException("Area phai > 0");
+            throw new RuntimeException("Area phải > 0");
         }
 
         Room room = new Room();

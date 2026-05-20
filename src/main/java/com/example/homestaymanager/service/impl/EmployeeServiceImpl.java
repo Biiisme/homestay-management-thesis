@@ -30,13 +30,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public Integer createEmployee(CreateEmployeeRequest request) {
         if (request == null) {
-            throw new RuntimeException("Thong tin nhan vien la bat buoc");
+            throw new RuntimeException("Thông tin nhân viên là bắt buộc");
         }
-        requireNotBlank(request.getName(), "Ten nhan vien la bat buoc");
-        requireNotBlank(request.getEmail(), "Email la bat buoc");
-        requireNotBlank(request.getUsername(), "Username la bat buoc");
-        requireNotBlank(request.getPassword(), "Mat khau la bat buoc");
-        requireNotBlank(request.getPhone(), "So dien thoai la bat buoc");
+        requireNotBlank(request.getName(), "Tên nhân viên là bắt buộc");
+        requireNotBlank(request.getEmail(), "Email là bắt buộc");
+        requireNotBlank(request.getUsername(), "Username là bắt buộc");
+        requireNotBlank(request.getPassword(), "Mật khẩu là bắt buộc");
+        requireNotBlank(request.getPhone(), "Số điện thoại là bắt buộc");
 
         ensureEmailUnique(request.getEmail(), null);
         ensureUsernameUnique(request.getUsername(), null);
@@ -64,7 +64,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     public EmployeeResponse getEmployeeByID(int id) {
         Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay nhan vien"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
         return toResponse(employee);
     }
 
@@ -89,7 +89,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public EmployeeResponse UpdateEmployeeById(int id, UpdateEmployee newEmp) {
         Employee oldEmp = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay nhan vien"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         if (newEmp.getName() != null && !newEmp.getName().isBlank()) {
             oldEmp.setName(newEmp.getName());
@@ -127,9 +127,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         if (newEmp.getRoleId() != null) {
             Role role = roleRepository.findById(newEmp.getRoleId())
-                    .orElseThrow(() -> new RuntimeException("Role khong ton tai"));
+                    .orElseThrow(() -> new RuntimeException("Role không tồn tại"));
             if (isAdminRole(role)) {
-                throw new RuntimeException("Khong duoc cap role ADMIN cho nhan vien");
+                throw new RuntimeException("Không được cấp role ADMIN cho nhân viên");
             }
             oldEmp.setRole(role);
         }
@@ -156,12 +156,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     private Role resolveEmployeeRole(Integer roleId) {
         Role role = roleId == null
                 ? roleRepository.findByNameIgnoreCase(EMPLOYEE_ROLE)
-                    .orElseThrow(() -> new RuntimeException("Role EMPLOYEE khong ton tai"))
+                    .orElseThrow(() -> new RuntimeException("Role EMPLOYEE không tồn tại"))
                 : roleRepository.findById(roleId)
-                    .orElseThrow(() -> new RuntimeException("Role khong ton tai"));
+                    .orElseThrow(() -> new RuntimeException("Role không tồn tại"));
 
         if (isAdminRole(role)) {
-            throw new RuntimeException("Khong duoc tao nhan vien voi role ADMIN");
+            throw new RuntimeException("Không được tạo nhân viên với role ADMIN");
         }
         return role;
     }
@@ -174,10 +174,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.findByEmail(email)
                 .filter(employee -> currentId == null || employee.getId() != currentId)
                 .ifPresent(employee -> {
-                    throw new RuntimeException("Email da ton tai");
+                    throw new RuntimeException("Email đã tồn tại");
                 });
         if (customerRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email da ton tai");
+            throw new RuntimeException("Email đã tồn tại");
         }
     }
 
@@ -185,7 +185,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.findByUsername(username)
                 .filter(employee -> currentId == null || employee.getId() != currentId)
                 .ifPresent(employee -> {
-                    throw new RuntimeException("Username da ton tai");
+                    throw new RuntimeException("Username đã tồn tại");
                 });
     }
 

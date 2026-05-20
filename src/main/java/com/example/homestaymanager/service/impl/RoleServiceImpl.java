@@ -21,10 +21,10 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public Integer createRole(Role role) {
         if (role == null || role.getName() == null || role.getName().isBlank()) {
-            throw new RuntimeException("Ten vai tro la bat buoc");
+            throw new RuntimeException("Tên vai trò là bắt buộc");
         }
         if (isAdminName(role.getName())) {
-            throw new RuntimeException("Khong duoc tao vai tro ADMIN tai day");
+            throw new RuntimeException("Không được tạo vai trò ADMIN tại đây");
         }
         ensureRoleNameUnique(role.getName(), null);
         roleRepository.save(role);
@@ -42,7 +42,7 @@ public class RoleServiceImpl implements RoleService {
     public void deleteRoleById(int id) {
         Role role = roleRepository.findById(id).orElseThrow(()-> new RuntimeException("Role not found"));
         if (isAdminName(role.getName())) {
-            throw new RuntimeException("Khong duoc xoa vai tro ADMIN");
+            throw new RuntimeException("Không được xóa vai trò ADMIN");
         }
         roleRepository.delete(role);
     }
@@ -58,12 +58,12 @@ public class RoleServiceImpl implements RoleService {
     public Role updateRoleById(int id, UpdateRoleRequest request) {
         Role role = roleRepository.findById(id).orElseThrow(()-> new RuntimeException("Role not found"));
         if (isAdminName(role.getName())) {
-            throw new RuntimeException("Khong duoc sua vai tro ADMIN");
+            throw new RuntimeException("Không được sửa vai trò ADMIN");
         }
 
         if (request.getName() != null && !request.getName().isBlank()) {
             if (isAdminName(request.getName())) {
-                throw new RuntimeException("Khong duoc doi vai tro thanh ADMIN");
+                throw new RuntimeException("Không được đổi vai trò thành ADMIN");
             }
             ensureRoleNameUnique(request.getName(), id);
             role.setName(request.getName());
@@ -80,7 +80,7 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.findByNameIgnoreCase(name)
                 .filter(role -> currentId == null || role.getId() != currentId)
                 .ifPresent(role -> {
-                    throw new RuntimeException("Ten vai tro da ton tai");
+                    throw new RuntimeException("Tên vai trò đã tồn tại");
                 });
     }
 

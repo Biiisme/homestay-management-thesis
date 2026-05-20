@@ -23,16 +23,16 @@ public class EmployeeController {
     @GetMapping("/employees")
     public ApiResponse<ArrayList<EmployeeResponse>> getListEmployee() {
         if (!SecurityUtil.isAdmin()) {
-            throw new UnauthorizedException("Chi admin co the xem danh sach nhan vien");
+            throw new UnauthorizedException("Chỉ admin có thể xem danh sách nhân viên");
         }
         ArrayList<EmployeeResponse> employees = employeeService.getListEmployee();
-        return ApiResponse.of(ApiStatus.OK, "Lay ra danh sach nhan vien thanh cong", employees);
+        return ApiResponse.of(ApiStatus.OK, "Lấy ra danh sách nhân viên thành công", employees);
     }
 
     @PostMapping("/employees")
     public ApiResponse<?> createEmployee(@RequestBody CreateEmployeeRequest employee) {
         if (!SecurityUtil.isAdmin()) {
-            throw new UnauthorizedException("Chi admin co the tao nhan vien");
+            throw new UnauthorizedException("Chỉ admin có thể tạo nhân viên");
         }
         employeeService.createEmployee(employee);
         return ApiResponse.of(ApiStatus.OK, ApiMessage.CREATED, null);
@@ -43,7 +43,7 @@ public class EmployeeController {
         if (!SecurityUtil.isAdmin()) {
             var current = SecurityUtil.getCurrentUser();
             if (current == null || current.getId() != employeeId) {
-                throw new UnauthorizedException("Khong co quyen xem thong tin nhan vien nay");
+                throw new UnauthorizedException("Không có quyền xem thông tin nhân viên này");
             }
         }
         EmployeeResponse employee = employeeService.getEmployeeByID(employeeId);
@@ -55,7 +55,7 @@ public class EmployeeController {
         if (!SecurityUtil.isAdmin()) {
             var current = SecurityUtil.getCurrentUser();
             if (current == null || current.getId() != employeeId) {
-                throw new UnauthorizedException("Khong co quyen sua thong tin nhan vien nay");
+                throw new UnauthorizedException("Không có quyền sửa thông tin nhân viên này");
             }
         }
         EmployeeResponse employee = employeeService.UpdateEmployeeById(employeeId, dtoEmp);
@@ -65,7 +65,7 @@ public class EmployeeController {
     @DeleteMapping("/employees/{employeeId}")
     public ApiResponse<?> deleteEmployeeById(@PathVariable int employeeId) {
         if (!SecurityUtil.isAdmin()) {
-            throw new UnauthorizedException("Chi admin co the xoa nhan vien");
+            throw new UnauthorizedException("Chỉ admin có thể xóa nhân viên");
         }
         employeeService.deleteEmployeeById(employeeId);
         return ApiResponse.of(ApiStatus.OK, ApiMessage.DELETED, null);

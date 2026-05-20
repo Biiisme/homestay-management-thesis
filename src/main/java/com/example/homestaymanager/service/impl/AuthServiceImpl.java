@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
         Employee employee = employeeRepository.findByEmail(request.getEmail()).orElse(null);
         if (employee != null && passwordMatches(request.getPassword(), employee.getPassword())) {
             if (Boolean.FALSE.equals(employee.getActive())) {
-                throw new UnauthorizedException("Tai khoan nhan vien dang bi vo hieu hoa");
+                throw new UnauthorizedException("Tài khoản nhân viên đang bị vô hiệu hóa");
             }
             return employeeLoginResponse(employee);
         }
@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         Customer customer = customerRepository.findByEmail(request.getEmail()).orElse(null);
         if (customer != null && passwordMatches(request.getPassword(), customer.getPassword())) {
             if (customer.getStatus() == CustomerStatus.LOCKED) {
-                throw new UnauthorizedException("Tai khoan khach hang dang bi khoa");
+                throw new UnauthorizedException("Tài khoản khách hàng đang bị khóa");
             }
             return customerLoginResponse(customer);
         }
