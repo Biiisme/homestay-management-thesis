@@ -37,6 +37,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
+    private static final int PENDING_HOLD_MINUTES = 30;
+
     private static final List<BookingStatus> BLOCKING_STATUSES = List.of(
             BookingStatus.PENDING,
             BookingStatus.CONFIRMED,
@@ -91,6 +93,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setCheckOut(request.getCheckOut());
         booking.setGuestCount(request.getGuestCount());
         booking.setCurrentStatus(BookingStatus.PENDING);
+        booking.setPendingExpiresAt(LocalDateTime.now().plusMinutes(PENDING_HOLD_MINUTES));
         booking.setTotalAmount(total);
         booking.setPaidAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
         booking.setHasSentReminder(false);
@@ -103,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public BookingResponse getBookingById(int id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
         return toResponse(booking);
     }
 
@@ -125,10 +128,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponse updateStatus(int bookingId, BookingStatus newStatus) {
         if (newStatus == null) {
-            throw new RuntimeException("status là bắt buộc");
+            throw new RuntimeException("Trạng thái là bắt buộc");
         }
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
         assertStatusTransition(booking.getCurrentStatus(), newStatus);
         booking.setCurrentStatus(newStatus);
         return toResponse(booking);
@@ -138,9 +141,9 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponse cancelBooking(int id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-        BookingStatus s = booking.getCurrentStatus();
-        if (s != BookingStatus.PENDING && s != BookingStatus.CONFIRMED) {
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+        BookingStatus status = booking.getCurrentStatus();
+        if (status != BookingStatus.PENDING && status != BookingStatus.CONFIRMED) {
             throw new RuntimeException("Chỉ có thể hủy booking đang PENDING hoặc CONFIRMED");
         }
         if (!booking.getCheckIn().isAfter(LocalDateTime.now())) {
@@ -152,13 +155,13 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateTimes(LocalDateTime checkIn, LocalDateTime checkOut) {
         if (checkIn == null || checkOut == null) {
-            throw new RuntimeException("Ngày checkIn và checkOut là bắt buộc");
+            throw new RuntimeException("Ngày check-in và check-out là bắt buộc");
         }
         if (!checkIn.isAfter(LocalDateTime.now())) {
-            throw new RuntimeException("Ngày checkIn phải sau thời điểm hiện tại");
+            throw new RuntimeException("Ngày check-in phải sau thời điểm hiện tại");
         }
         if (!checkOut.isAfter(checkIn)) {
-            throw new RuntimeException("Ngày checkOut phải sau Ngày checkIn");
+            throw new RuntimeException("Ngày check-out phải sau ngày check-in");
         }
         if (!checkOut.toLocalDate().isAfter(checkIn.toLocalDate())) {
             throw new RuntimeException("Phải đặt tối thiểu 1 đêm");
@@ -198,8 +201,8 @@ public class BookingServiceImpl implements BookingService {
         if (pricing.getHolidayPrice() != null && isHoliday(night)) {
             return pricing.getHolidayPrice();
         }
-        DayOfWeek dow = night.getDayOfWeek();
-        boolean weekend = dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
+        DayOfWeek dayOfWeek = night.getDayOfWeek();
+        boolean weekend = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
         if (weekend && pricing.getWeekendPrice() != null) {
             return pricing.getWeekendPrice();
         }
@@ -207,13 +210,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private static boolean isHoliday(LocalDate date) {
-        Set<MonthDay> weekendHolidays = Set.of(
+        Set<MonthDay> holidays = Set.of(
                 MonthDay.of(1, 1),
                 MonthDay.of(4, 30),
                 MonthDay.of(5, 1),
                 MonthDay.of(9, 2)
         );
-        return weekendHolidays.contains(MonthDay.from(date));
+        return holidays.contains(MonthDay.from(date));
     }
 
     private static int computeRefundPercentage(LocalDateTime checkIn, LocalDateTime cancellationTime) {
@@ -250,32 +253,34 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    public static BookingResponse toResponse(Booking b) {
-        Integer employeeId = b.getEmployee() != null ? b.getEmployee().getId() : null;
-        Integer branchId = b.getRoom().getBranch() != null ? b.getRoom().getBranch().getId() : null;
+    public static BookingResponse toResponse(Booking booking) {
+        Integer employeeId = booking.getEmployee() != null ? booking.getEmployee().getId() : null;
+        Integer branchId = booking.getRoom().getBranch() != null ? booking.getRoom().getBranch().getId() : null;
         Integer refundPercentage = null;
-        if (b.getCurrentStatus() == BookingStatus.CANCELLED) {
-            LocalDateTime referenceTime = b.getUpdatedAt() != null ? b.getUpdatedAt() : LocalDateTime.now();
-            refundPercentage = computeRefundPercentage(b.getCheckIn(), referenceTime);
+        if (booking.getCurrentStatus() == BookingStatus.CANCELLED) {
+            LocalDateTime referenceTime = booking.getUpdatedAt() != null ? booking.getUpdatedAt() : LocalDateTime.now();
+            refundPercentage = computeRefundPercentage(booking.getCheckIn(), referenceTime);
         }
         return BookingResponse.builder()
-                .id(b.getId())
-                .customerId(b.getCustomer().getId())
-                .customerName(b.getCustomer().getName())
+                .id(booking.getId())
+                .customerId(booking.getCustomer().getId())
+                .customerName(booking.getCustomer().getName())
                 .employeeId(employeeId)
-                .roomId(b.getRoom().getId())
+                .roomId(booking.getRoom().getId())
+                .roomName("Phòng " + booking.getRoom().getNumber())
                 .branchId(branchId)
-                .roomTypeName(b.getRoom().getRoomType().getName())
-                .checkIn(b.getCheckIn())
-                .checkOut(b.getCheckOut())
-                .guestCount(b.getGuestCount())
-                .currentStatus(b.getCurrentStatus())
-                .totalAmount(b.getTotalAmount())
-                .paidAmount(b.getPaidAmount())
-                .hasSentReminder(b.isHasSentReminder())
+                .roomTypeName(booking.getRoom().getRoomType().getName())
+                .checkIn(booking.getCheckIn())
+                .checkOut(booking.getCheckOut())
+                .guestCount(booking.getGuestCount())
+                .currentStatus(booking.getCurrentStatus())
+                .totalAmount(booking.getTotalAmount())
+                .paidAmount(booking.getPaidAmount())
+                .hasSentReminder(booking.isHasSentReminder())
                 .refundPercentage(refundPercentage)
-                .createdAt(b.getCreatedAt())
-                .updatedAt(b.getUpdatedAt())
+                .pendingExpiresAt(booking.getPendingExpiresAt())
+                .createdAt(booking.getCreatedAt())
+                .updatedAt(booking.getUpdatedAt())
                 .build();
     }
 }
