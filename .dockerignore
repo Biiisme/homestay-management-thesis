@@ -1,0 +1,17 @@
+.git
+.idea
+.vscode
+target
+build
+dist
+
+.env
+.env.*
+!.env.sample
+
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
+Dockerfile
+.dockerignore
